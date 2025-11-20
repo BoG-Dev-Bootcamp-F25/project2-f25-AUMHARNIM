@@ -4,32 +4,30 @@ import Image from "next/image";
 
 export default function AnimalCard({ animal }: any) {
   return (
-    <div className="bg-white rounded-xl shadow-md overflow-hidden">
+    <div className="bg-white border border-gray-300 rounded-xl shadow-sm p-4 w-full max-w-md">
+
       {/* Image */}
-      <div className="w-full h-56 relative">
+      <div className="w-full h-48 overflow-hidden rounded-lg mb-4">
         <Image
-          src={animal.image}
+          src={animal.profilePicUrl}
           alt={animal.name}
-          fill
-          className="object-cover"
+          width={500}
+          height={500}
+          className="object-cover w-full h-full"
         />
       </div>
 
-      {/* Info */}
-      <div className="p-4">
-        <div className="flex items-center gap-2 mb-1">
-          <div className="w-6 h-6 flex items-center justify-center bg-red-600 text-white rounded-full text-xs">
-            L
-          </div>
-          <p className="font-semibold text-gray-800">
-            {animal.name} - {animal.breed}
-          </p>
-        </div>
+      {/* Text */}
+      <h2 className="text-lg font-semibold text-black">{animal.name}</h2>
+      <p className="text-sm text-gray-600">{animal.breed}</p>
 
-        <p className="text-xs text-gray-500">
-          {animal.owner} • Trained: {animal.hours} hours
-        </p>
-      </div>
+      <p className="mt-2 text-sm">
+        <span className="font-semibold">Owner:</span> {animal.ownerName}
+      </p>
+
+      <p className="text-sm">
+        <span className="font-semibold">Hours trained:</span> {animal.hoursTrained}
+      </p>
     </div>
   );
 }

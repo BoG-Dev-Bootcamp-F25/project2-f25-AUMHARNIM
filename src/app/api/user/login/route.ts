@@ -1,25 +1,23 @@
 import { NextResponse } from "next/server";
 import clientPromise from "@/lib/mongodb";
+import argon2 from "argon2";
 import { ObjectId } from "mongodb";
 
-export async function GET(req: Request) {
+export async function POST(req: Request) {
   try {
-    const { searchParams } = new URL(req.url);
-    const userId = searchParams.get("id");
-
-    if (!userId) {
-      return NextResponse.json({ error: "Missing ID" }, { status: 400 });
-    }
+    const { email, password } = await req.json();
 
     const client = await clientPromise;
     const db = client.db("animalTraining");
 
-    const user = await db.collection("users").findOne({
-      _id: new ObjectId(userId),
-    });
-
+    const user = await db.collection("users").findOne({ email });
     if (!user) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
+      return NextResponse.json({ error: "Invalid login" }, { status: 401 });
+    }
+
+    const valid = await argon2.verify(user.passwordHash, password);
+    if (!valid) {
+      return NextResponse.json({ error: "Invalid login" }, { status: 401 });
     }
 
     return NextResponse.json(
