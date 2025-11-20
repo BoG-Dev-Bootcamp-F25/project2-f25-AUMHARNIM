@@ -2,6 +2,10 @@ import { NextResponse } from "next/server";
 import clientPromise from "@/lib/mongodb";
 import { ObjectId } from "mongodb";
 
+//
+// ----------------------------
+// CREATE ANIMAL (POST)
+// ----------------------------
 export async function POST(req: Request) {
   try {
     const { name, breed, hoursTrained, profilePicUrl, ownerId } =
@@ -14,6 +18,7 @@ export async function POST(req: Request) {
     const client = await clientPromise;
     const db = client.db("animalTraining");
 
+    // Validate owner exists
     const owner = await db
       .collection("users")
       .findOne({ _id: new ObjectId(ownerId) });
@@ -31,33 +36,47 @@ export async function POST(req: Request) {
     });
 
     return NextResponse.json({ id: result.insertedId }, { status: 200 });
-  } catch {
+  } catch (e) {
+    console.error("ANIMAL POST ERROR:", e);
     return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
 }
 
-export async function PATCH(req: Request) {
+//
+// ----------------------------
+// GET ALL ANIMALS (GET)
+// ----------------------------
+export async function GET() {
   try {
-    const { animalId, hoursTrained } = await req.json();
-
-    if (!animalId || hoursTrained === undefined) {
-      return NextResponse.json({ error: "Missing fields" }, { status: 400 });
-    }
-
     const client = await clientPromise;
     const db = client.db("animalTraining");
 
-    const result = await db.collection("animals").updateOne(
-      { _id: new ObjectId(animalId) },
-      { $set: { hoursTrained } }
-    );
+    const animals = await db
+      .collection("animals")
+      .aggregate([
+        {
+          $lookup: {
+            from: "users",
+            localField: "ownerId",
+            foreignField: "_id",
+            as: "owner",
+          },
+        },
+        { $unwind: "$owner" },
+        {
+          $project: {
+            name: 1,
+            breed: 1,
+            hoursTrained: 1,
+            profilePicUrl: 1,
+            ownerName: "$owner.fullName",
+          },
+        },
+      ])
+      .toArray();
 
-    if (result.matchedCount === 0) {
-      return NextResponse.json({ error: "Animal not found" }, { status: 400 });
-    }
-
-    return NextResponse.json({ success: true }, { status: 200 });
-  } catch {
+    return NextResponse.json(animals, { status: 200 });
+  } catch (e) {
     return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
 }

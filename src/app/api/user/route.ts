@@ -13,22 +13,30 @@ export async function POST(req: Request) {
     const client = await clientPromise;
     const db = client.db("animalTraining");
 
+    // Check duplicate email
     const existing = await db.collection("users").findOne({ email });
     if (existing) {
-      return NextResponse.json({ error: "Email already exists" }, { status: 400 });
+      return NextResponse.json(
+        { error: "Email already exists" },
+        { status: 400 }
+      );
     }
 
-    const passwordHash = await argon2.hash(password);
+    const hashedPassword = await argon2.hash(password);
 
     const result = await db.collection("users").insertOne({
       fullName,
       email,
-      passwordHash,
-      isAdmin: !!isAdmin,
+      passwordHash: hashedPassword,
+      isAdmin: Boolean(isAdmin), // ✔ store admin!
     });
 
     return NextResponse.json(
-      { id: result.insertedId, fullName, isAdmin: !!isAdmin },
+      {
+        id: result.insertedId,
+        fullName,
+        isAdmin: Boolean(isAdmin),
+      },
       { status: 200 }
     );
   } catch (e) {

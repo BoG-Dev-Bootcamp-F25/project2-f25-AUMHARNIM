@@ -2,103 +2,91 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
 
 export default function LoginPage() {
   const router = useRouter();
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
 
-  async function handleLogin() {
+  async function handleLogin(e: any) {
+    e.preventDefault();
     setError("");
 
-    try {
-      const res = await fetch("/api/user/verify", {
-        method: "POST",
-        body: JSON.stringify({ email, password }),
-      });
+    const res = await fetch("/api/user/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password }),
+    });
 
-      if (!res.ok) {
-        setError("Invalid email or password.");
-        return;
-      }
+    const data = await res.json();
 
-      const data = await res.json();
-
-      localStorage.setItem("userId", data.id);
-      localStorage.setItem("admin", data.admin);
-
-      router.push("/dashboard/training");
-    } catch (err) {
-      setError("Something went wrong.");
+    if (!res.ok) {
+      setError("Invalid email or password");
+      return;
     }
+
+    localStorage.setItem("userId", data.id);
+    localStorage.setItem("fullName", data.fullName);
+    localStorage.setItem("isAdmin", data.isAdmin ? "true" : "false");
+
+    router.push("/dashboard/training");
   }
 
   return (
-    <div className="min-h-screen w-full bg-white flex flex-col items-center">
+    <div className="flex flex-col items-center justify-center h-screen px-4">
 
-      {/* HEADER */}
-      <div className="w-full flex items-center px-8 py-4 border-b border-gray-300">
-        <Image
-          src="/images/appLogo.png"
-          width={40}
-          height={40}
-          alt="Progress App Logo"
-        />
-        <span className="ml-3 text-3xl font-bold text-black">Progress</span>
-      </div>
+      {/* CARD */}
+      <div className="w-full max-w-lg bg-white p-10 rounded-xl shadow-xl border">
 
-      {/* MAIN CONTENT */}
-      <div className="flex flex-col items-center mt-16 w-full max-w-md">
-        <h1 className="text-4xl font-bold text-black mb-10">Login</h1>
+        <h1 className="text-4xl font-bold text-center mb-10">Login</h1>
 
-        {/* INPUTS */}
-        <div className="flex flex-col w-full gap-8 px-6">
-          <input
-            type="text"
-            placeholder="Email"
-            className="border-b border-[#C43A2D] outline-none py-1 text-black placeholder-gray-500"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
+        <form onSubmit={handleLogin} className="flex flex-col gap-6">
+          
+          <div className="flex flex-col">
+            {email && <label className="text-sm text-gray-700 mb-1">Email</label>}
+            <input
+              type="email"
+              placeholder={email ? "" : "Email"}
+              className="border-b-2 border-red-500 p-2 focus:outline-none"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+          </div>
 
-          <input
-            type="password"
-            placeholder="Password"
-            className="border-b border-[#C43A2D] outline-none py-1 text-black placeholder-gray-500"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
-        </div>
+          <div className="flex flex-col">
+            {password && <label className="text-sm text-gray-700 mb-1">Password</label>}
+            <input
+              type="password"
+              placeholder={password ? "" : "Password"}
+              className="border-b-2 border-red-500 p-2 focus:outline-none"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
+          </div>
 
-        {/* ERROR MESSAGE */}
-        {error && <p className="text-red-500 text-sm mt-3">{error}</p>}
+          {error && <p className="text-red-500 text-sm text-center">{error}</p>}
 
-        {/* LOGIN BUTTON */}
-        <button
-          onClick={handleLogin}
-          className="mt-10 w-80 bg-[#C43A2D] hover:bg-[#A83226] text-white py-3 rounded-xl text-lg font-semibold transition"
-        >
-          Log in
-        </button>
+          <button
+            type="submit"
+            className="bg-red-600 text-white py-3 rounded-md text-lg font-semibold hover:bg-red-700 transition"
+          >
+            Log in
+          </button>
+        </form>
 
-        {/* SIGNUP LINK */}
-        <p className="mt-4 text-black text-sm">
+        <p className="text-center mt-6 text-sm">
           Don’t have an account?{" "}
           <span
-            className="font-bold cursor-pointer hover:underline"
+            className="text-red-600 cursor-pointer font-semibold"
             onClick={() => router.push("/signup")}
           >
             Sign up
           </span>
         </p>
-      </div>
-
-      {/* FOOTER */}
-      <div className="absolute bottom-6 text-center text-gray-600 text-xs">
-        <p>Made with ♡ by Long Lam</p>
-        <p>© 2023 BOG Developer Bootcamp. All rights reserved.</p>
       </div>
     </div>
   );

@@ -1,36 +1,50 @@
-import Image from "next/image";
+"use client";
 
-export default function TrainingCard() {
+interface TrainingCardProps {
+  log: {
+    _id: string;
+    title: string;
+    description: string;
+    hours: number;
+    date: string;
+    animalName: string;
+    animalBreed: string;
+    userName: string;
+  };
+}
+
+export default function TrainingCard({ log }: TrainingCardProps) {
+  const dateObj = new Date(log.date);
+  const month = dateObj.toLocaleString("en-US", { month: "short" });
+  const day = dateObj.getDate();
+  const year = dateObj.getFullYear();
+
   return (
-    <div className="w-full flex bg-white border border-gray-200 shadow-md rounded-xl overflow-hidden p-4 items-center">
-
-      {/* LEFT DATE BLOCK */}
-      <div className="bg-[#2E317C] text-white w-24 h-24 rounded-lg flex flex-col items-center justify-center mr-6">
-        <div className="text-3xl font-bold">20</div>
-        <div className="text-sm -mt-1">Oct • 2023</div>
+    <div className="flex items-center w-full bg-white rounded-xl border shadow p-4 gap-6">
+      
+      {/* DATE BOX */}
+      <div className="bg-[#2D2E83] text-white rounded-xl px-6 py-4 flex flex-col items-center justify-center">
+        <span className="text-3xl font-semibold">{day}</span>
+        <span className="uppercase text-sm">{month}</span>
+        <span className="text-xs">{year}</span>
       </div>
 
-      {/* MIDDLE CONTENT */}
-      <div className="flex-1">
+      {/* CONTENT */}
+      <div className="flex flex-col flex-1">
+        
+        {/* TITLE + HOURS */}
         <div className="flex items-center gap-3">
-          <h2 className="font-bold text-lg text-black">Complete sit lessons</h2>
-          <span className="text-gray-400 text-sm">• 20 hours</span>
+          <h2 className="text-xl font-semibold">{log.title}</h2>
+          <span className="text-gray-500 text-sm">• {log.hours} hours</span>
         </div>
 
-        <div className="text-sm text-gray-500">
-          Long Lam • Golden Retriever • Lucy
-        </div>
-
-        <p className="text-sm text-gray-700 mt-1">
-          Lucy finishes the sit lessons very well today. Should give her a treat
+        {/* USER + ANIMAL */}
+        <p className="text-sm text-gray-500">
+          {log.userName} • {log.animalBreed} • {log.animalName}
         </p>
-      </div>
 
-      {/* RIGHT EDIT BUTTON */}
-      <div>
-        <div className="h-12 w-12 bg-[#C43A2D] rounded-full flex items-center justify-center shadow-md cursor-pointer hover:bg-[#A83226]">
-          <Image src="/images/activeTrainingLogo.png" alt="" width={20} height={20} />
-        </div>
+        {/* DESCRIPTION */}
+        <p className="mt-2 text-gray-700">{log.description}</p>
       </div>
     </div>
   );

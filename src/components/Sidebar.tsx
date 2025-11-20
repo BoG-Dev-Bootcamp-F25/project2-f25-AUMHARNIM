@@ -1,130 +1,98 @@
 "use client";
 
 import Image from "next/image";
-import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { useEffect, useState } from "react";
 
-export default function Sidebar() {
-  const router = useRouter();
-  const [isAdmin, setIsAdmin] = useState(false);
+export default function SideBar() {
+  const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
+  const [fullName, setFullName] = useState("");
 
   useEffect(() => {
-    // pull admin status from localStorage
-    const adminFlag = localStorage.getItem("admin") === "true";
-    setIsAdmin(adminFlag);
+    const id = localStorage.getItem("userId");
+    if (!id) return setIsAdmin(false);
+
+    async function fetchUser() {
+      try {
+        const res = await fetch(`/api/user/verify?id=${id}`);
+        if (!res.ok) {
+          setIsAdmin(false);
+          return;
+        }
+
+        const data = await res.json();
+        setFullName(data.fullName || "User");
+        setIsAdmin(data.isAdmin === true);
+      } catch {
+        setIsAdmin(false);
+      }
+    }
+
+    fetchUser();
   }, []);
 
+  // Avoid rendering until we know admin state
+  if (isAdmin === null) return null;
+
   return (
-    <div className="w-64 bg-white h-screen border-r flex flex-col justify-between py-6">
+    <div className="flex flex-col justify-between h-full w-64 border-r p-4">
 
       {/* TOP SECTION */}
-      <div>
-        {/* LOGO */}
-        <div className="flex items-center gap-3 px-6 mb-8">
-          <Image
-            src="/images/appLogo.png"
-            alt="App Logo"
-            width={40}
-            height={40}
-          />
-          <h1 className="text-3xl font-bold text-[#1A1A1A]">Progress</h1>
+      <div className="flex flex-col gap-4">
+
+        {/* App Logo */}
+        <div className="flex items-center gap-2 text-xl font-bold">
+          <Image src="/images/appLogo.png" width={32} height={32} alt="App Logo" />
+          Progress
         </div>
 
-        {/* TRAINING LOGS — ACTIVE */}
-        <div
-          className="flex items-center gap-3 mx-4 mb-3 p-3 bg-[#C0392B] text-white rounded-lg cursor-pointer"
-          onClick={() => router.push("/dashboard/training")}
-        >
-          <Image
-            src="/images/activeTrainingLogo.png"
-            alt="Training Logo"
-            width={22}
-            height={22}
-          />
-          <span className="text-lg">Training logs</span>
-        </div>
+        {/* Training Logs */}
+        <Link href="/dashboard/training" className="flex items-center gap-3 p-2 rounded hover:bg-gray-200">
+          <Image src="/images/inactiveTrainingLogs.png" width={22} height={22} alt="Training" />
+          <span>Training logs</span>
+        </Link>
 
-        {/* ANIMALS */}
-        <div
-          className="flex items-center gap-3 mx-4 mb-3 p-3 text-[#434A57] rounded-lg cursor-pointer hover:bg-gray-100"
-          onClick={() => router.push("/dashboard/animals")}
-        >
-          <Image
-            src="/images/inactiveAnimalLogo.png"
-            alt="Animals Logo"
-            width={22}
-            height={22}
-          />
-          <span className="text-lg">Animals</span>
-        </div>
+        {/* Animals */}
+        <Link href="/dashboard/animals" className="flex items-center gap-3 p-2 rounded hover:bg-gray-200">
+          <Image src="/images/inactiveAnimalLogo.png" width={22} height={22} alt="Animals" />
+          <span>Animals</span>
+        </Link>
 
         {/* ADMIN SECTION */}
         {isAdmin && (
-          <div className="mt-6 border-t mx-4 pt-4">
-            <p className="text-sm text-gray-500 mb-3 px-1">Admin access</p>
+          <>
+            <div className="mt-4 mb-1 text-sm text-gray-500">Admin access</div>
 
-            <div
-              className="flex items-center gap-3 mx-1 mb-3 p-3 text-[#434A57] rounded-lg cursor-pointer hover:bg-gray-100"
-              onClick={() => router.push("/dashboard/admin/training")}
-            >
-              <Image
-                src="/images/inactiveTrainingLogs.png"
-                alt="All training"
-                width={22}
-                height={22}
-              />
-              <span className="text-lg">All training</span>
-            </div>
+            <Link href="/admin/training" className="flex items-center gap-3 p-2 rounded hover:bg-gray-200">
+              <Image src="/images/inactiveAllTrainingLogo.png" width={22} height={22} alt="All training" />
+              <span>All training</span>
+            </Link>
 
-            <div
-              className="flex items-center gap-3 mx-1 mb-3 p-3 text-[#434A57] rounded-lg cursor-pointer hover:bg-gray-100"
-              onClick={() => router.push("/dashboard/admin/animals")}
-            >
-              <Image
-                src="/images/inactiveAllAnimalsLogo.png"
-                alt="All animals"
-                width={22}
-                height={22}
-              />
-              <span className="text-lg">All animals</span>
-            </div>
+            <Link href="/admin/animals" className="flex items-center gap-3 p-2 rounded hover:bg-gray-200">
+              <Image src="/images/inactiveAllAnimalsLogo.png" width={22} height={22} alt="All animals" />
+              <span>All animals</span>
+            </Link>
 
-            <div
-              className="flex items-center gap-3 mx-1 mb-3 p-3 text-[#434A57] rounded-lg cursor-pointer hover:bg-gray-100"
-              onClick={() => router.push("/dashboard/admin/users")}
-            >
-              <Image
-                src="/images/inactiveAllUsersLogo.png"
-                alt="All users"
-                width={22}
-                height={22}
-              />
-              <span className="text-lg">All users</span>
-            </div>
-          </div>
+            <Link href="/admin/users" className="flex items-center gap-3 p-2 rounded hover:bg-gray-200">
+              <Image src="/images/inactiveAllUsersLogo.png" width={22} height={22} alt="All users" />
+              <span>All users</span>
+            </Link>
+          </>
         )}
       </div>
 
-      {/* BOTTOM USER SECTION */}
-      <div className="flex items-center justify-between px-6 mt-4 border-t pt-4">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-[#C0392B] text-white flex justify-center items-center text-lg font-bold">
-            L
-          </div>
-          <div>
-            <p className="font-semibold">Long Lam</p>
-            <p className="text-sm text-gray-500">{isAdmin ? "Admin" : "User"}</p>
-          </div>
+      {/* BOTTOM USER INFO */}
+      <div className="flex items-center justify-between border-t pt-3">
+        <div className="flex flex-col text-sm">
+          <span className="font-semibold">{fullName}</span>
+          <span className="text-gray-500 text-xs">
+            {isAdmin ? "Admin" : "User"}
+          </span>
         </div>
 
-        <Image
-          src="/images/logoutLogo.png"
-          alt="Logout"
-          width={22}
-          height={22}
-          className="cursor-pointer"
-          onClick={() => router.push("/login")}
-        />
+        <Link href="/login">
+          <Image src="/images/logoutLogo.png" width={22} height={22} alt="Logout" />
+        </Link>
       </div>
     </div>
   );
